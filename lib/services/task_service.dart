@@ -502,4 +502,208 @@ class TaskService {
       }
     }
   }
+
+  /// Cancel recurring task
+  static Future<bool> cancelRecurringTask({required int taskId}) async {
+    try {
+      print('🔧 TaskService: Starting cancelRecurringTask for taskId: $taskId');
+      
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        print('❌ TaskService: No authenticated user');
+        return false;
+      }
+      
+      print('✅ TaskService: User authenticated: ${currentUser.id}');
+
+      // First, check if the task exists and user has permission
+      print('🔍 TaskService: Checking if task exists and user has permission...');
+      final existingTask = await _supabase
+          .from('tasks')
+          .select('id, title, created_by, is_recurring')
+          .eq('id', taskId)
+          .maybeSingle();
+          
+      print('📋 TaskService: Existing task data: $existingTask');
+      
+      if (existingTask == null) {
+        print('❌ TaskService: Task not found or no permission to access');
+        return false;
+      }
+      
+      if (existingTask['is_recurring'] == false) {
+        print('⚠️ TaskService: Task is already not recurring');
+        return true; // Consider it successful since it's already in desired state
+      }
+
+      // Update task to stop recurring
+      print('📝 TaskService: Updating task $taskId in database...');
+      final response = await _supabase
+          .from('tasks')
+          .update({
+            'is_recurring': false,
+            'recurrence_type': null,
+          })
+          .eq('id', taskId)
+          .select(); // Add select to get the updated row back
+
+      print('📊 TaskService: Database response: $response');
+      
+      if (response.isEmpty) {
+        print('⚠️ TaskService: No rows were updated. Task might not exist or user has no permission.');
+        return false;
+      }
+
+      print('✅ TaskService: Task recurring cancelled successfully');
+      return true;
+    } catch (e) {
+      print('💥 TaskService: Error cancelling recurring task: $e');
+      print('🔍 TaskService: Error type: ${e.runtimeType}');
+      if (e is PostgrestException) {
+        print('🔍 TaskService: Postgrest error details: ${e.details}');
+        print('🔍 TaskService: Postgrest error message: ${e.message}');
+      }
+      return false;
+    }
+  }
+
+  /// Get recurring tasks with detailed stats
+  static Future<List<Map<String, dynamic>>> getRecurringTasks() async {
+    try {
+      final response = await _supabase
+          .from('tasks')
+          .select('*, profiles!tasks_created_by_fkey(*)')
+          .eq('is_recurring', true)
+          .order('created_at', ascending: false);
+
+      // Get stats for each recurring task
+      List<Map<String, dynamic>> tasksWithStats = [];
+      
+      for (var task in response) {
+        final taskId = task['id'];
+        
+        // Count generated tasks
+        final generatedTasks = await _supabase
+            .from('tasks')
+            .select('id')
+            .eq('parent_task_id', taskId);
+            
+        // Get last generated task
+        final lastGenerated = await _supabase
+            .from('tasks')
+            .select('created_at')
+            .eq('parent_task_id', taskId)
+            .order('created_at', ascending: false)
+            .limit(1);
+            
+        // Calculate next occurrence
+        final nextOccurrence = _calculateNextOccurrence(
+          task['recurrence_type'],
+          DateTime.parse(task['created_at']),
+          lastGenerated.isNotEmpty 
+              ? DateTime.parse(lastGenerated[0]['created_at'])
+              : null,
+        );
+        
+        // Add stats to task
+        Map<String, dynamic> taskWithStats = Map<String, dynamic>.from(task);
+        taskWithStats['generated_count'] = generatedTasks.length;
+        taskWithStats['last_generated_at'] = lastGenerated.isNotEmpty 
+            ? lastGenerated[0]['created_at'] 
+            : null;
+        taskWithStats['next_occurrence'] = nextOccurrence?.toIso8601String();
+        
+        tasksWithStats.add(taskWithStats);
+      }
+
+      if (kDebugMode) {
+        print('Fetched ${tasksWithStats.length} recurring tasks with stats');
+      }
+      
+      return tasksWithStats;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching recurring tasks: $e');
+      }
+      return [];
+    }
+  }
+  
+  /// Calculate next occurrence based on recurrence type
+  static DateTime? _calculateNextOccurrence(
+    String? recurrenceType,
+    DateTime createdAt,
+    DateTime? lastGenerated,
+  ) {
+    if (recurrenceType == null) return null;
+    
+    DateTime baseDate = lastGenerated ?? createdAt;
+    DateTime now = DateTime.now();
+    
+    switch (recurrenceType) {
+      case 'every_minute':
+        DateTime next = baseDate.add(const Duration(minutes: 1));
+        return next.isAfter(now) ? next : now.add(const Duration(minutes: 1));
+        
+      case 'daily':
+        DateTime next = DateTime(baseDate.year, baseDate.month, baseDate.day + 1);
+        while (next.isBefore(now)) {
+          next = next.add(const Duration(days: 1));
+        }
+        return next;
+        
+      case 'weekly':
+        DateTime next = baseDate.add(const Duration(days: 7));
+        while (next.isBefore(now)) {
+          next = next.add(const Duration(days: 7));
+        }
+        return next;
+        
+      case 'monthly':
+        DateTime next = DateTime(baseDate.year, baseDate.month + 1, baseDate.day);
+        while (next.isBefore(now)) {
+          next = DateTime(next.year, next.month + 1, next.day);
+        }
+        return next;
+        
+      default:
+        return null;
+    }
+  }
+
+  /// Update recurring task settings
+  static Future<bool> updateRecurringTask({
+    required int taskId,
+    required String recurrenceType,
+    DateTime? recurrenceEndDate,
+  }) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        if (kDebugMode) {
+          print('No authenticated user');
+        }
+        return false;
+      }
+
+      // Update task recurring settings
+      await _supabase
+          .from('tasks')
+          .update({
+            'recurrence_type': recurrenceType,
+            'recurrence_end_date': recurrenceEndDate?.toIso8601String(),
+          } as Map<String, Object>)
+          .eq('id', taskId);
+
+      if (kDebugMode) {
+        print('Task recurring settings updated successfully');
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating recurring task: $e');
+      }
+      return false;
+    }
+  }
 }

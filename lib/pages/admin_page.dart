@@ -36,6 +36,17 @@ class _AdminDashboardState extends State<AdminDashboard>
   final List<String> _priorities = ['هام للغاية', 'هام جدا', 'هام', 'عادي'];
   String _selectedStatus = 'in_progress';
   final List<String> _statuses = ['in_progress', 'completed'];
+  
+  // إعدادات التكرار
+  bool _isRecurring = false;
+  String _recurrenceType = 'every_minute';
+  final List<String> _recurrenceTypes = ['every_minute', 'daily', 'weekly', 'monthly'];
+  final Map<String, String> _recurrenceLabels = {
+    'every_minute': 'كل دقيقة (للاختبار)',
+    'daily': 'يومياً',
+    'weekly': 'أسبوعياً', 
+    'monthly': 'شهرياً',
+  };
 
   @override
   void initState() {
@@ -138,6 +149,8 @@ class _AdminDashboardState extends State<AdminDashboard>
         'created_at': _startDate!.toIso8601String(),
         'end_at': _endDate!.toIso8601String(),
         'priority': _selectedPriority,
+        'is_recurring': _isRecurring,
+        'recurrence_type': _isRecurring ? _recurrenceType : null,
       }).select();
 
       final taskId = taskResponse[0]['id'] as int;
@@ -283,6 +296,8 @@ class _AdminDashboardState extends State<AdminDashboard>
       _selectedPriority = 'عادي';
       _selectedStatus = 'in_progress';
       _selectedFiles.clear();
+      _isRecurring = false;
+      _recurrenceType = 'every_minute';
     });
   }
 
@@ -1081,6 +1096,9 @@ class _AdminDashboardState extends State<AdminDashboard>
                               },
                             ),
                             const SizedBox(height: 24),
+                            // Recurring Task Section
+                            _buildRecurringSection(),
+                            const SizedBox(height: 24),
                             // User Selector
                             _buildModernUserSelector(),
                             const SizedBox(height: 24),
@@ -1227,6 +1245,117 @@ class _AdminDashboardState extends State<AdminDashboard>
           }).toList(),
           onChanged: onChanged,
         ),
+      ),
+    );
+  }
+
+  // Recurring Task Section Widget
+  Widget _buildRecurringSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _isRecurring 
+                        ? const Color(0xFF10B981).withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.repeat_rounded,
+                    color: _isRecurring 
+                        ? const Color(0xFF10B981)
+                        : Colors.grey[600],
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'إعدادات التكرار',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Checkbox للمهمة المتكررة
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  child: CheckboxListTile(
+                    title: const Text(
+                      'هل هذه مهمة متكررة؟',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'ستتم إعادة إنشاء هذه المهمة تلقائياً حسب الجدولة المحددة',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    value: _isRecurring,
+                    onChanged: (value) {
+                      setState(() {
+                        _isRecurring = value ?? false;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    activeColor: const Color(0xFF10B981),
+                    checkColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+                
+                // Dropdown لنوع التكرار (يظهر فقط إذا كان التكرار مفعل)
+                if (_isRecurring) ...[
+                  const SizedBox(height: 16),
+                  _buildModernDropdown(
+                    label: 'نوع التكرار',
+                    value: _recurrenceType,
+                    items: _recurrenceTypes,
+                    icon: Icons.schedule_rounded,
+                    color: const Color(0xFF10B981),
+                    itemTextBuilder: (type) => _recurrenceLabels[type] ?? type,
+                    onChanged: (value) {
+                      setState(() {
+                        _recurrenceType = value!;
+                      });
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

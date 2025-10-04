@@ -20,5 +20,7 @@
   ],
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  },
+  "cmake.sourceDirectory": "D:/GESH/dev/taskaty/taskaty/linux",
+  "dart.flutterSdkPath": ".fvm/versions/3.35.4"
 }

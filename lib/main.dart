@@ -169,6 +169,7 @@ Future<void> _initializeSupabase() async {
         authFlowType: AuthFlowType.pkce,
       ),
     );
+    
     _supabaseInitialized = true;
     print('Supabase initialized successfully with URL: $supabaseUrl');
   } catch (e) {

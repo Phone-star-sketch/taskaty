@@ -68,7 +68,6 @@ assets/.env*
 assets/.env
 web/config.js
 
-
 # Firebase and sensitive files - CRITICAL: These contain API keys
 # Firebase and sensitive files - CRITICAL: These contain API keys
 /android/app/google-services.json
@@ -98,3 +97,6 @@ google-services.json
 *~
 *.temp
 *~
+
+# FVM Version Cache
+.fvm/

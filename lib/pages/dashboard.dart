@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart'; // Keep this import for isS
 import 'package:taskaty/pages/task_calendar.dart'; // Import your new calendar widget
 import 'package:collection/collection.dart'; // **ADD THIS IMPORT**
 import 'package:taskaty/pages/appbar_sidebar.dart'; // Import the new Sidebar widget
+import 'package:taskaty/pages/recurring_tasks_page.dart';
 
 class DashboardPage extends StatefulWidget {
   static const route = '/admin/dashboard';
@@ -834,6 +835,10 @@ class _DashboardPageState extends State<DashboardPage>
       return task['status'] == 'in_progress' || task['status'] == null;
     }).length;
 
+    final recurringTasks = _allTasks.where((task) {
+      return task['is_recurring'] == true;
+    }).length;
+
     return Card(
       margin: const EdgeInsets.all(20),
       elevation: 12,
@@ -943,6 +948,19 @@ class _DashboardPageState extends State<DashboardPage>
                     theme,
                     onTap: () => _filterTasksByStatus('completed'),
                     isActive: _statusFilter == 'completed',
+                  ),
+                  _buildStatItem(
+                    'المهام المتكررة',
+                    recurringTasks.toString(),
+                    Icons.repeat_rounded,
+                    const Color(0xFF10B981),
+                    theme,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RecurringTasksPage(),
+                      ),
+                    ),
+                    isActive: false,
                   ),
                 ],
               ),
