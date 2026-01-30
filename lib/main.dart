@@ -150,7 +150,7 @@ Future<void> _initializeSupabase() async {
       print('Using fallback hardcoded values for mobile...');
       supabaseUrl = 'https://gbdhgvwtfbfjxoioyuiw.supabase.co';
       supabaseApiKey =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdiZGhndnd0ZmJmanhvaW95dWl3Iiwicm9zZSI6ImFub24iLCJpYXQiOjE3NDk1NjAyMjMsImV4cCI6MjA2NTEzNjIyM30.-al9ws0fvh5TydlKBy26pPKF6bE5oJQe_qZqj2r1X6I';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdiZGhndnd0ZmJmanhvaW95dWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjAyMjMsImV4cCI6MjA2NTEzNjIyM30.-al9ws0fvh5TydlKBy26pPKF6bE5oJQe_qZqj2r1X6I';
     }
   }
 
@@ -169,7 +169,7 @@ Future<void> _initializeSupabase() async {
         authFlowType: AuthFlowType.pkce,
       ),
     );
-    
+
     _supabaseInitialized = true;
     print('Supabase initialized successfully with URL: $supabaseUrl');
   } catch (e) {
