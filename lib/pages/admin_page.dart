@@ -36,15 +36,20 @@ class _AdminDashboardState extends State<AdminDashboard>
   final List<String> _priorities = ['هام للغاية', 'هام جدا', 'هام', 'عادي'];
   String _selectedStatus = 'in_progress';
   final List<String> _statuses = ['in_progress', 'completed'];
-  
+
   // إعدادات التكرار
   bool _isRecurring = false;
   String _recurrenceType = 'every_minute';
-  final List<String> _recurrenceTypes = ['every_minute', 'daily', 'weekly', 'monthly'];
+  final List<String> _recurrenceTypes = [
+    'every_minute',
+    'daily',
+    'weekly',
+    'monthly'
+  ];
   final Map<String, String> _recurrenceLabels = {
     'every_minute': 'كل دقيقة (للاختبار)',
     'daily': 'يومياً',
-    'weekly': 'أسبوعياً', 
+    'weekly': 'أسبوعياً',
     'monthly': 'شهرياً',
   };
 
@@ -377,6 +382,48 @@ class _AdminDashboardState extends State<AdminDashboard>
 
   String _formatDate(DateTime date) {
     return '${date.year}/${date.month}/${date.day}';
+  }
+
+  String _getRecurrenceExplanation() {
+    if (_startDate == null) return '';
+
+    final weekDays = [
+      'الاثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد',
+    ];
+
+    final dayName = weekDays[_startDate!.weekday - 1];
+
+    // حساب مدة المهمة (الفرق بين البدء والانتهاء)
+    String durationText = '';
+    if (_endDate != null) {
+      final duration = _endDate!.difference(_startDate!).inDays;
+      if (duration == 0) {
+        durationText = ' (نفس اليوم)';
+      } else if (duration == 1) {
+        durationText = ' (يوم واحد للتسليم)';
+      } else {
+        durationText = ' ($duration أيام للتسليم)';
+      }
+    }
+
+    switch (_recurrenceType) {
+      case 'every_minute':
+        return 'ستتكرر هذه المهمة كل دقيقة بدءاً من ${_formatDate(_startDate!)}$durationText';
+      case 'daily':
+        return 'ستُنشأ مهمة جديدة كل يوم بدءاً من ${_formatDate(_startDate!)}$durationText';
+      case 'weekly':
+        return 'ستُنشأ مهمة جديدة كل يوم $dayName بدءاً من ${_formatDate(_startDate!)}$durationText';
+      case 'monthly':
+        return 'ستُنشأ مهمة جديدة في اليوم ${_startDate!.day} من كل شهر بدءاً من ${_formatDate(_startDate!)}$durationText';
+      default:
+        return '';
+    }
   }
 
   String _getStatusText(String status) {
@@ -1035,8 +1082,12 @@ class _AdminDashboardState extends State<AdminDashboard>
                               child: AbsorbPointer(
                                 child: _buildModernTextField(
                                   controller: _startDateController,
-                                  label: 'تاريخ البدء',
-                                  hint: 'اختر تاريخ البدء',
+                                  label: _isRecurring
+                                      ? 'تاريخ البدء (أول مرة تُنشأ فيها المهمة)'
+                                      : 'تاريخ البدء',
+                                  hint: _isRecurring
+                                      ? 'اختر تاريخ أول مهمة'
+                                      : 'اختر تاريخ البدء',
                                   icon: Icons.calendar_today_rounded,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
@@ -1054,8 +1105,12 @@ class _AdminDashboardState extends State<AdminDashboard>
                               child: AbsorbPointer(
                                 child: _buildModernTextField(
                                   controller: _endDateController,
-                                  label: 'تاريخ الانتهاء',
-                                  hint: 'اختر تاريخ الانتهاء',
+                                  label: _isRecurring
+                                      ? 'تاريخ الانتهاء (موعد التسليم لكل مهمة)'
+                                      : 'تاريخ الانتهاء',
+                                  hint: _isRecurring
+                                      ? 'اختر موعد التسليم'
+                                      : 'اختر تاريخ الانتهاء',
                                   icon: Icons.event_rounded,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
@@ -1171,6 +1226,10 @@ class _AdminDashboardState extends State<AdminDashboard>
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
         hintText: hint,
         prefixIcon: Icon(icon, color: const Color(0xFF6366F1)),
         filled: true,
@@ -1264,7 +1323,8 @@ class _AdminDashboardState extends State<AdminDashboard>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
               border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
             ),
             child: Row(
@@ -1272,14 +1332,14 @@ class _AdminDashboardState extends State<AdminDashboard>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _isRecurring 
+                    color: _isRecurring
                         ? const Color(0xFF10B981).withOpacity(0.1)
                         : Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.repeat_rounded,
-                    color: _isRecurring 
+                    color: _isRecurring
                         ? const Color(0xFF10B981)
                         : Colors.grey[600],
                     size: 20,
@@ -1334,7 +1394,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                     ),
                   ),
                 ),
-                
+
                 // Dropdown لنوع التكرار (يظهر فقط إذا كان التكرار مفعل)
                 if (_isRecurring) ...[
                   const SizedBox(height: 16),
@@ -1351,6 +1411,43 @@ class _AdminDashboardState extends State<AdminDashboard>
                       });
                     },
                   ),
+
+                  // رسالة توضيحية للتكرار بناءً على تاريخ البدء
+                  if (_startDate != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: const Color(0xFF10B981),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _getRecurrenceExplanation(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[900],
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),

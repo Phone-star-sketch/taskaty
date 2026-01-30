@@ -126,7 +126,7 @@ class NotificationService {
     );
 
     await _localNotifications.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
   }
@@ -293,10 +293,10 @@ class NotificationService {
     }
 
     await _localNotifications.show(
-      message.hashCode,
-      message.notification?.title ?? 'Taskaty',
-      message.notification?.body ?? 'New notification',
-      platformChannelSpecifics,
+      id: message.hashCode,
+      title: message.notification?.title ?? 'Taskaty',
+      body: message.notification?.body ?? 'New notification',
+      notificationDetails: platformChannelSpecifics,
       payload: jsonEncode(payload),
     );
   }
