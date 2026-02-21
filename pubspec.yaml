@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -37,14 +39,27 @@ dependencies:
   cupertino_icons: ^1.0.6
   supabase_flutter: ^2.9.0
   flutter_dotenv: ^5.1.0
-  shared_preferences: ^2.3.3
+  shared_preferences: ^2.3.4
   app_links: ^6.4.0
   google_fonts: ^6.1.0
   flutter_spinkit: ^5.2.1
   image_picker: ^1.1.2
   path_provider: ^2.1.5
-  
-
+  file_picker: ^10.2.0
+  url_launcher: ^6.1.11
+  intl: ^0.20.2
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.1
+  pdf: ^3.11.3
+  open_file: ^3.5.10
+  jhijri: ^1.0.0
+  flutter_localization: ^0.3.1
+  universal_html: ^2.2.4
+  printing: ^5.14.2
+  table_calendar: ^3.0.9
+  firebase_core: ^3.15.1
+  firebase_messaging: ^15.2.9  
+  flutter_local_notifications: ^20.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -67,5 +82,36 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/cairo/Cairo-SemiBold.ttf
+        - asset: assets/fonts/cairo/Cairo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/cairo/Cairo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/cairo/Cairo-Light.ttf
+          weight: 300
+        - asset: assets/fonts/cairo/Cairo-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/cairo/Cairo-Medium.ttf
+          weight: 500
   assets:
-    - assets/.env
+       
+    - assets/background.jpg
+    - assets/background_login.png
+    - assets/fonts/NotoSansArabic-VariableFont_wdth,wght.ttf # Ensure this is the correct path
+    - assets/icon.png
+    - assets/pdf_logo.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#111820" # Background color matching your image background
+  image: assets/icon.png # Use the same image for splash
+  android: true
+  ios: true

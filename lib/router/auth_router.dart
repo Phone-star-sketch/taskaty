@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:taskaty/auth/login.dart';
 import 'package:taskaty/pages/admin_page.dart';
-import 'package:taskaty/pages/user_page.dart';
+import 'package:taskaty/pages/user_Dashboard.dart';
 import 'package:taskaty/pages/dashboard.dart';
 
 class AuthRouter extends StatelessWidget {

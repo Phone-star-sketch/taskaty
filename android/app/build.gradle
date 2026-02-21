@@ -1,8 +1,10 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    
+    // ✅ Google services plugin for Firebase
+    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -24,35 +26,52 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace = "com.example.taskaty"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace "com.example.taskaty"  // ✅ this is your app's package name
+    compileSdk = 35
+    ndkVersion = "29.0.13599879"  // ✅ specify NDK version if needed
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true // ⚠️ Correct syntax for AGP < 7.4
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.taskaty"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
+        applicationId "com.example.taskaty"  // ✅ Firebase package name
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutterVersionCode.toInteger()
-        versionName = flutterVersionName
+        targetSdk = 35
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+
+        multiDexEnabled true // Required when minSdk <= 20
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
         }
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
 flutter {
-    source = "../.."
+    source "../.."
+}
+
+dependencies {
+    // ✅ Firebase BoM - handles all Firebase versions automatically
+    implementation platform('com.google.firebase:firebase-bom:33.16.0')
+
+    // ✅ Firebase Messaging (Push Notifications)
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // (Optional) Add other Firebase services here if needed:
+    // implementation 'com.google.firebase:firebase-analytics'
+    // implementation 'com.google.firebase:firebase-auth'
+
+    // ✅ Core Library Desugaring Dependency (correct version for AGP < 7.4)
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }

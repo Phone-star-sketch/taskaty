@@ -31,6 +31,22 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Web related
+
+/web/.dart_tool/
+.metadata
+*.js.map
+*.js.deps
+*.js.tar.gz
+
+# Web related
+
+/web/.dart_tool/
+.metadata
+*.js.map
+*.js.deps
+*.js.tar.gz
+
 # Symbolication related
 app.*.symbols
 
@@ -41,4 +57,46 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-/assets/.env
+
+# Environment files - CRITICAL: These contain sensitive data
+.env*
+.env
+.env.local
+.env.production
+.env.development
+assets/.env*
+assets/.env
+web/config.js
+
+# Firebase and sensitive files - CRITICAL: These contain API keys
+# Firebase and sensitive files - CRITICAL: These contain API keys
+/android/app/google-services.json
+/supabase/functions/service_account.json
+google-services.json
+**/service_account.json
+**/google-services.json
+
+# Temporary files
+*.tmp
+*.temp
+*~
+**/service_account.json
+**/google-services.json
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.temp
+*~
+**/google-services.json
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.temp
+*~
+
+# FVM Version Cache
+.fvm/
